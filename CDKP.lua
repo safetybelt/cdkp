@@ -14,7 +14,8 @@ local CDKP = {}
 -----------------------------------------------------------------------------------------------
 -- Constants
 -----------------------------------------------------------------------------------------------
-local classQualities = {
+-- TODO: Make these customizable in UI?  Probably not so everyone sees same values...
+local tClassQualities = {
     ["healer"] = { ["omni"] = "great", ["fusion"] = "great", ["life"] = "great", ["water"] = "great", ["air"] = "good", ["fire"] = "good", ["earth"] = "bad", ["logic"] = "bad" },
     ["tank"] = { ["omni"] = "great", ["fusion"] = "good", ["life"] = "great", ["water"] = "bad", ["air"] = "great", ["fire"] = "bad", ["earth"] = "great", ["logic"] = "good" },
     ["warrior"] = { ["omni"] = "great", ["fusion"] = "great", ["life"] = "good", ["water"] = "bad", ["air"] = "bad", ["fire"] = "great", ["earth"] = "good", ["logic"] = "bad" },
@@ -23,6 +24,17 @@ local classQualities = {
     ["engineer"] = { ["omni"] = "great", ["fusion"] = "great", ["life"] = "good", ["water"] = "good", ["air"] = "good", ["fire"] = "great", ["earth"] = "bad", ["logic"] = "bad" },
     ["esper"] = { ["omni"] = "great", ["fusion"] = "great", ["life"] = "bad", ["water"] = "bad", ["air"] = "good", ["fire"] = "great", ["earth"] = "bad", ["logic"] = "good" },
     ["medic"] = { ["omni"] = "great", ["fusion"] = "great", ["life"] = "bad", ["water"] = "bad", ["air"] = "good", ["fire"] = "great", ["earth"] = "good", ["logic"] = "good" },
+}
+
+local tDefaultSettings = {
+	["bShowHealer"] 			= false,
+	["bShowTank"] 				= false,
+	["bShowWarrior"]			= false,
+	["bShowStalker"]			= false,
+	["bShowSpellslinger"] = false,
+	["bShowEngineer"] 		= false,
+	["bShowEsper"] 				= false,
+	["bShowMedic"]		 		= false,
 }
 
 
@@ -35,6 +47,7 @@ function CDKP:new(o)
     self.__index = self 
 
     -- initialize variables here
+    o.tSettings = {}
 
     return o
 end
@@ -79,7 +92,6 @@ end
 -- CDKP OnDocLoaded
 -----------------------------------------------------------------------------------------------
 function CDKP:OnDocLoaded()
-
 	if self.xmlDoc ~= nil and self.xmlDoc:IsLoaded() then
 	  self.wndMain = Apollo.LoadForm(self.xmlDoc, "CDKPForm", nil, self)
 		if self.wndMain == nil then
@@ -92,6 +104,29 @@ function CDKP:OnDocLoaded()
 		Apollo.RegisterSlashCommand("cdkp", "OnCDKPOn", self)
 
 		-- Do additional Addon initialization here
+	end
+end
+
+
+-----------------------------------------------------------------------------------------------
+-- CDKP Config Functions
+-----------------------------------------------------------------------------------------------
+-- on SlashCommand "/cdkp"
+function CDKP:OnCDKPOn()
+	-- TODO: Remove this test window shit and add a real config window
+	local t = self:GetCDKPValue(2000, { "life", "earth" }, 2, "warrior")
+	self.wndMain:FindChild("Test_Result"):SetText(t)
+
+	-- self:SetupOptions()
+
+	self.wndMain:Invoke()
+end
+
+-- reset the settings to default
+function CDKP:DefaultSettings()
+	self.tSettings = {}
+	for i,val in pairs(tDefaultSettings) do
+		self.tSettings[i] = tDefaultSettings[i]
 	end
 end
 
@@ -116,15 +151,7 @@ function CDKP:ItemToolTip(wndControl, item, bStuff, nCount)
 	return wndTooltip, wndTooltipComp
 end
 
--- on SlashCommand "/cdkp"
-function CDKP:OnCDKPOn()
-	local t = self:GetCDKPValue(2000, { "life", "earth" }, 2, "warrior")
-	
-	self.wndMain:FindChild("Test_Result"):SetText(t)
-	
-	self.wndMain:Invoke() -- show the window
-end
-
+-- TODO: make this take an item instead of power/slots/modifier; class should stay
 -- get the CDKP value, based on item power, rune slots, weapon/gadget modifiers, class
 function CDKP:GetCDKPValue(ipower, slots, modifier, class)
 	return math.ceil(ipower * 0.05 * (modifier + self:GetRuneModifier(slots, class)))
@@ -132,6 +159,7 @@ end
 
 -- given slots and class, return a modifier
 function CDKP:GetRuneModifier(slots, class)
+	-- TODO: Consider making quality values customizable; slot penalties not hard-coded here
 	-- slot quality values, { bad, good, great }
 	local qualVals = { ["bad"] = 1, ["good"] = 2, ["great"] = 4 }
 	-- slot penalties { 1st slot, 2nd slot, etc }
@@ -140,9 +168,11 @@ function CDKP:GetRuneModifier(slots, class)
 	local r = 0
 		
 	for i = 1, #slots do
-		r = r + (qualVals[classQualities[class][slots[i]]] * slotPenalties[i])
+		r = r + (qualVals[tClassQualities[class][slots[i]]] * slotPenalties[i])
 	end
 	
+	-- TODO: Consider making this formula customizable, or at least not hard-coded here
+	-- algorithm created and provided by Ivellis of <Crisis>
 	r = (math.sqrt(200) / 10.26 * (r - 1.78)) ^ 2
 	r = r / 100
 	
@@ -153,6 +183,7 @@ end
 -----------------------------------------------------------------------------------------------
 -- CDKPForm Functions
 -----------------------------------------------------------------------------------------------
+-- TODO: make ok/cancel actually save the changes or revert them, respectively
 -- when the OK button is clicked
 function CDKP:OnOK()
 	self.wndMain:Close() -- hide the window
