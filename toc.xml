@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Addon Author="Safetybelt" APIVersion="9" Name="CDKP" Description="Adds DKP values to item tooltips.  DKP values come from the system used by &lt;Crisis&gt; on Stormtalon.">
+    <Script Name="CDKP.lua"/>
+    <Form Name="CDKP.xml"/>
+</Addon>
