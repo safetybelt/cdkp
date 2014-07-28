@@ -60,6 +60,17 @@ function CDKP:Init()
 	}
     Apollo.RegisterAddon(self, bHasConfigureFunction, strConfigureButtonText, tDependencies)
 end
+
+function TooltipTests:OnDependencyError(strDep, strError)
+	if strDep == "ToolTips" then
+		local tReplacements = Apollo.GetReplacement(strDep)
+		if #tReplacements ~= 1 then
+			return false
+		end
+		self.TTReplacement = tReplacements[1]
+		return true
+	end
+end
  
 
 -----------------------------------------------------------------------------------------------
@@ -92,6 +103,10 @@ end
 -- CDKP OnDocLoaded
 -----------------------------------------------------------------------------------------------
 function CDKP:OnDocLoaded()
+	if self.TTReplacement then
+		self:HookToolTip(Apollo.GetAddon(self.TTReplacement))
+	end
+	self:DefaultSettings()
 	if self.xmlDoc ~= nil and self.xmlDoc:IsLoaded() then
 	  self.wndMain = Apollo.LoadForm(self.xmlDoc, "CDKPForm", nil, self)
 		if self.wndMain == nil then
@@ -142,7 +157,7 @@ function CDKP:ItemToolTip(wndControl, item, bStuff, nCount)
 	
 	if wndTooltip then
 		-- t = wndTooltip:FindChild("ItemTooltip_Header_Types")
-		-- t:SetText(t:GetText() .. " Power: " .. item:GetItemPower())
+		-- t:SetText(t:GetText() .. " Power: " .. item:GetItemPower() .. " | ID: " .. item.GetItemId())
 		local wndCDKPVals = Apollo.LoadForm(self.xmlDoc, "CDKP_Vals", wndControl:FindChild("Items"), self)
 		if wndCDKPVals then
 			wndCDKPVals:SetText("Test")
