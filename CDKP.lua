@@ -189,7 +189,7 @@ function CDKP:GetCDKPString(item)
 		local tItemInfo = item:GetDetailedInfo().tPrimary
 		local tSlots = {}
 		local tSlotInfo = tItemInfo.tSigils
-		if tSlotInfo then
+		if tSlotInfo and tSlotInfo.arSigils then
 			for i = 1, #tSlotInfo.arSigils do
 				tSlots[i] = tRunes[tSlotInfo.arSigils[i].eElement]
 			end
