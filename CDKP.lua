@@ -194,18 +194,28 @@ function CDKP:GetCDKPString(item)
 				tSlots[i] = tRunes[tSlotInfo.arSigils[i].eElement]
 			end
 		end
-		--tSlots = { "air", "life", "water", "earth" }
+		
+		local modifier = 1
+		if item:GetItemTypeName() == "Gadget" then
+			modifier = 0.5
+		elseif string.find(item:GetItemCategoryName(), "Weapon") then
+			modifier = 2
+		end
 		
 		local t = ""
 		if tDefaultSettings["bShowItemId"] then t = t .. "Item ID: " .. item:GetItemId() .. "\n" end
-		if tDefaultSettings["bShowHealer"] then t = t .. "Healer: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "healer") .. "\n" end
-		if tDefaultSettings["bShowTank"] then t = t .. "Tank: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "tank") .. "\n" end
-		if tDefaultSettings["bShowWarrior"] then t = t .. "Warrior: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "warrior") .. "\n" end
-		if tDefaultSettings["bShowStalker"] then t = t .. "Stalker: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "stalker") .. "\n" end
-		if tDefaultSettings["bShowSpellslinger"] then t = t .. "Spellslinger: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "spellslinger") .. "\n" end
-		if tDefaultSettings["bShowEngineer"] then t = t .. "Engineer: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "engineer") .. "\n" end
-		if tDefaultSettings["bShowEsper"] then t = t .. "Esper: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "esper") .. "\n" end
-		if tDefaultSettings["bShowMedic"] then t = t .. "Medic: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "medic") .. "\n" end
+		if tDefaultSettings["bShowHealer"] then t = t .. "Healer: " .. CDKP:GetCDKPValue(ipower, tSlots, modifier, "healer") .. "\n" end
+		if tDefaultSettings["bShowTank"] then t = t .. "Tank: " .. CDKP:GetCDKPValue(ipower, tSlots, modifier, "tank") .. "\n" end
+		if tDefaultSettings["bShowWarrior"] then t = t .. "Warrior: " .. CDKP:GetCDKPValue(ipower, tSlots, modifier, "warrior") .. "\n" end
+		if tDefaultSettings["bShowStalker"] then t = t .. "Stalker: " .. CDKP:GetCDKPValue(ipower, tSlots, modifier, "stalker") .. "\n" end
+		if tDefaultSettings["bShowSpellslinger"] then t = t .. "Spellslinger: " .. CDKP:GetCDKPValue(ipower, tSlots, modifier, "spellslinger") .. "\n" end
+		if tDefaultSettings["bShowEngineer"] then t = t .. "Engineer: " .. CDKP:GetCDKPValue(ipower, tSlots, modifier, "engineer") .. "\n" end
+		if tDefaultSettings["bShowEsper"] then t = t .. "Esper: " .. CDKP:GetCDKPValue(ipower, tSlots, modifier, "esper") .. "\n" end
+		if tDefaultSettings["bShowMedic"] then t = t .. "Medic: " .. CDKP:GetCDKPValue(ipower, tSlots, modifier, "medic") .. "\n" end
+		
+		
+		--t = t .. "Item Cat: " .. item:GetItemTypeName() .. "\n"
+		--t = t .. "Item Cat Name: " .. item:GetItemCategoryName() .. "\n"
 		
 		return t
 	else
