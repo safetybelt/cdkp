@@ -142,13 +142,9 @@ end
 -----------------------------------------------------------------------------------------------
 -- on SlashCommand "/cdkp"
 function CDKP:OnCDKPOn()
-	-- TODO: Remove this test window shit and add a real config window
-	local t = self:GetCDKPValue(2529, { "air", "life" }, 1, "tank")
-	self.wndMain:FindChild("Test_Result"):SetText(t)
-
 	-- self:SetupOptions()
 
-	self.wndMain:Invoke()
+	-- self.wndMain:Invoke()
 end
 
 -- reset the settings to default
@@ -187,30 +183,34 @@ end
 
 -- get the string to add to the tooltip, based on user settings
 function CDKP:GetCDKPString(item)
-	-- get all the item information
-	local ipower = item:GetItemPower()
-	local tItemInfo = item:GetDetailedInfo().tPrimary
-	local tSlots = {}
-	local tSlotInfo = tItemInfo.tSigils
-	if tSlotInfo then
-		for i = 1, #tSlotInfo.arSigils do
-			tSlots[i] = tRunes[tSlotInfo.arSigils[i].eElement]
+	if item:IsEquippable() then
+		-- get all the item information
+		local ipower = item:GetItemPower()
+		local tItemInfo = item:GetDetailedInfo().tPrimary
+		local tSlots = {}
+		local tSlotInfo = tItemInfo.tSigils
+		if tSlotInfo then
+			for i = 1, #tSlotInfo.arSigils do
+				tSlots[i] = tRunes[tSlotInfo.arSigils[i].eElement]
+			end
 		end
+		--tSlots = { "air", "life", "water", "earth" }
+		
+		local t = ""
+		if tDefaultSettings["bShowItemId"] then t = t .. "Item ID: " .. item:GetItemId() .. "\n" end
+		if tDefaultSettings["bShowHealer"] then t = t .. "Healer: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "healer") .. "\n" end
+		if tDefaultSettings["bShowTank"] then t = t .. "Tank: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "tank") .. "\n" end
+		if tDefaultSettings["bShowWarrior"] then t = t .. "Warrior: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "warrior") .. "\n" end
+		if tDefaultSettings["bShowStalker"] then t = t .. "Stalker: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "stalker") .. "\n" end
+		if tDefaultSettings["bShowSpellslinger"] then t = t .. "Spellslinger: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "spellslinger") .. "\n" end
+		if tDefaultSettings["bShowEngineer"] then t = t .. "Engineer: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "engineer") .. "\n" end
+		if tDefaultSettings["bShowEsper"] then t = t .. "Esper: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "esper") .. "\n" end
+		if tDefaultSettings["bShowMedic"] then t = t .. "Medic: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "medic") .. "\n" end
+		
+		return t
+	else
+		return nil
 	end
-	--tSlots = { "air", "life", "water", "earth" }
-	
-	local t = ""
-	if tDefaultSettings["bShowItemId"] then t = t .. "Item ID: " .. item:GetItemId() .. "\n" end
-	if tDefaultSettings["bShowHealer"] then t = t .. "Healer: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "healer") .. "\n" end
-	if tDefaultSettings["bShowTank"] then t = t .. "Tank: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "tank") .. "\n" end
-	if tDefaultSettings["bShowWarrior"] then t = t .. "Warrior: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "warrior") .. "\n" end
-	if tDefaultSettings["bShowStalker"] then t = t .. "Stalker: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "stalker") .. "\n" end
-	if tDefaultSettings["bShowSpellslinger"] then t = t .. "Spellslinger: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "spellslinger") .. "\n" end
-	if tDefaultSettings["bShowEngineer"] then t = t .. "Engineer: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "engineer") .. "\n" end
-	if tDefaultSettings["bShowEsper"] then t = t .. "Esper: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "esper") .. "\n" end
-	if tDefaultSettings["bShowMedic"] then t = t .. "Medic: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "medic") .. "\n" end
-	
-	return t
 end
 
 -- TODO: make this take an item instead of power/slots/modifier; class should stay
