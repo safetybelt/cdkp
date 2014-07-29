@@ -2,7 +2,8 @@
 -- Client Lua Script for CDKP
 -- Copyright (c) NCsoft. All rights reserved
 -----------------------------------------------------------------------------------------------
- 
+
+require "Apollo"
 require "Window"
 require "math"
  
@@ -27,14 +28,27 @@ local tClassQualities = {
 }
 
 local tDefaultSettings = {
-	["bShowHealer"] 			= false,
-	["bShowTank"] 				= false,
-	["bShowWarrior"]			= false,
-	["bShowStalker"]			= false,
-	["bShowSpellslinger"] = false,
-	["bShowEngineer"] 		= false,
-	["bShowEsper"] 				= false,
-	["bShowMedic"]		 		= false,
+	["bShowHealer"] 			= true,
+	["bShowTank"] 				= true,
+	["bShowWarrior"]			= true,
+	["bShowStalker"]			= true,
+	["bShowSpellslinger"] 		= true,
+	["bShowEngineer"] 			= true,
+	["bShowEsper"] 				= true,
+	["bShowMedic"]		 		= true,
+	["bShowItemId"]				= true,
+}
+
+local tRunes =
+{
+  [Item.CodeEnumSigilType.Air]		= "air",
+  [Item.CodeEnumSigilType.Earth]	= "earth",
+  [Item.CodeEnumSigilType.Fire]		= "fire",
+  [Item.CodeEnumSigilType.Fusion]	= "fusion",
+  [Item.CodeEnumSigilType.Life]		= "life",
+  [Item.CodeEnumSigilType.Logic]	= "logic",
+  [Item.CodeEnumSigilType.Omni]		= "omni",
+  [Item.CodeEnumSigilType.Water]	= "water",
 }
 
 
@@ -44,7 +58,7 @@ local tDefaultSettings = {
 function CDKP:new(o)
     o = o or {}
     setmetatable(o, self)
-    self.__index = self 
+    self.__index = self
 
     -- initialize variables here
     o.tSettings = {}
@@ -61,7 +75,7 @@ function CDKP:Init()
     Apollo.RegisterAddon(self, bHasConfigureFunction, strConfigureButtonText, tDependencies)
 end
 
-function TooltipTests:OnDependencyError(strDep, strError)
+function CDKP:OnDependencyError(strDep, strError)
 	if strDep == "ToolTips" then
 		local tReplacements = Apollo.GetReplacement(strDep)
 		if #tReplacements ~= 1 then
@@ -108,12 +122,12 @@ function CDKP:OnDocLoaded()
 	end
 	self:DefaultSettings()
 	if self.xmlDoc ~= nil and self.xmlDoc:IsLoaded() then
-	  self.wndMain = Apollo.LoadForm(self.xmlDoc, "CDKPForm", nil, self)
-		if self.wndMain == nil then
-			Apollo.AddAddonErrorText(self, "Could not load the main window for some reason.")
-			return
-		end
-	  self.wndMain:Show(false, true)
+	  	self.wndMain = Apollo.LoadForm(self.xmlDoc, "CDKPForm", nil, self)
+			if self.wndMain == nil then
+				Apollo.AddAddonErrorText(self, "Could not load the main window for some reason.")
+				return
+			end
+		  self.wndMain:Show(false, true)
 		
 		-- Register handlers for events, slash commands and timer, etc.
 		Apollo.RegisterSlashCommand("cdkp", "OnCDKPOn", self)
@@ -129,7 +143,7 @@ end
 -- on SlashCommand "/cdkp"
 function CDKP:OnCDKPOn()
 	-- TODO: Remove this test window shit and add a real config window
-	local t = self:GetCDKPValue(2000, { "life", "earth" }, 2, "warrior")
+	local t = self:GetCDKPValue(2529, { "air", "life" }, 1, "tank")
 	self.wndMain:FindChild("Test_Result"):SetText(t)
 
 	-- self:SetupOptions()
@@ -150,20 +164,53 @@ end
 -----------------------------------------------------------------------------------------------
 -- adjust the default tooltip
 function CDKP:ItemToolTip(wndControl, item, bStuff, nCount)
-	local this = Apollo.GetAddon("ETooltip")
+	local this = Apollo.GetAddon("CDKP")
 	
 	wndControl:SetTooltipDoc(nil)
-	local wndTooltip = origItemToolTipForm(self, wndControl, item, bStuff, nCount)
+	local wndTooltip, wndTooltipComp = origItemToolTipForm(self, wndControl, item, bStuff, nCount)
 	
 	if wndTooltip then
-		-- t = wndTooltip:FindChild("ItemTooltip_Header_Types")
-		-- t:SetText(t:GetText() .. " Power: " .. item:GetItemPower() .. " | ID: " .. item.GetItemId())
-		local wndCDKPVals = Apollo.LoadForm(self.xmlDoc, "CDKP_Vals", wndControl:FindChild("Items"), self)
-		if wndCDKPVals then
-			wndCDKPVals:SetText("Test")
-		end
+		local wndCDKPVals = Apollo.LoadForm(this.xmlDoc, "CDKP_Summary", wndTooltip:FindChild("Items"), this)
+		local wndList = wndCDKPVals:FindChild("CDKP_List")
+		local wndVals = Apollo.LoadForm(this.xmlDoc, "CDKP_Vals", wndList, this)
+
+		wndVals:SetText(CDKP:GetCDKPString(item))
+		wndVals:SetHeightToContentHeight()
+		
+		local sumHeight = wndList:ArrangeChildrenVert()
+		wndCDKPVals:SetAnchorOffsets(0, 0, 0, sumHeight)
+		wndTooltip:FindChild("Items"):ArrangeChildrenVert()
+		wndTooltip:Move(0, 0, wndTooltip:GetWidth(), wndTooltip:GetHeight() + sumHeight)
 	end
 	return wndTooltip, wndTooltipComp
+end
+
+-- get the string to add to the tooltip, based on user settings
+function CDKP:GetCDKPString(item)
+	-- get all the item information
+	local ipower = item:GetItemPower()
+	local tItemInfo = item:GetDetailedInfo().tPrimary
+	local tSlots = {}
+	local tSlotInfo = tItemInfo.tSigils
+	if tSlotInfo then
+		for i = 1, #tSlotInfo.arSigils do
+			tSlots[i] = tRunes[tSlotInfo.arSigils[i].eElement]
+		end
+	end
+	--tSlots = { "air", "life", "water", "earth" }
+	
+	local t = ""
+	if tDefaultSettings["bShowItemId"] then t = t .. "Item ID: " .. item:GetItemId() .. "\n" end
+	if tDefaultSettings["bShowHealer"] then t = t .. "Healer: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "healer") .. "\n" end
+	if tDefaultSettings["bShowTank"] then t = t .. "Tank: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "tank") .. "\n" end
+	if tDefaultSettings["bShowWarrior"] then t = t .. "Warrior: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "warrior") .. "\n" end
+	if tDefaultSettings["bShowStalker"] then t = t .. "Stalker: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "stalker") .. "\n" end
+	if tDefaultSettings["bShowSpellslinger"] then t = t .. "Spellslinger: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "spellslinger") .. "\n" end
+	if tDefaultSettings["bShowEngineer"] then t = t .. "Engineer: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "engineer") .. "\n" end
+	if tDefaultSettings["bShowEsper"] then t = t .. "Esper: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "esper") .. "\n" end
+	if tDefaultSettings["bShowMedic"] then t = t .. "Medic: " .. CDKP:GetCDKPValue(ipower, tSlots, 1, "medic") .. "\n" end
+	
+	return t
 end
 
 -- TODO: make this take an item instead of power/slots/modifier; class should stay
@@ -174,6 +221,10 @@ end
 
 -- given slots and class, return a modifier
 function CDKP:GetRuneModifier(slots, class)
+	if #slots == 0 then
+		return 0
+	end
+	
 	-- TODO: Consider making quality values customizable; slot penalties not hard-coded here
 	-- slot quality values, { bad, good, great }
 	local qualVals = { ["bad"] = 1, ["good"] = 2, ["great"] = 4 }
