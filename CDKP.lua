@@ -123,16 +123,10 @@ function CDKP:OnDocLoaded()
 	self:DefaultSettings()
 	if self.xmlDoc ~= nil and self.xmlDoc:IsLoaded() then
 	  	self.wndMain = Apollo.LoadForm(self.xmlDoc, "CDKPForm", nil, self)
-			if self.wndMain == nil then
-				Apollo.AddAddonErrorText(self, "Could not load the main window for some reason.")
-				return
-			end
 		  self.wndMain:Show(false, true)
 		
 		-- Register handlers for events, slash commands and timer, etc.
 		Apollo.RegisterSlashCommand("cdkp", "OnCDKPOn", self)
-
-		-- Do additional Addon initialization here
 	end
 end
 
