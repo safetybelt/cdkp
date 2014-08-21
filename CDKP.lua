@@ -160,7 +160,11 @@ end
 -----------------------------------------------------------------------------------------------
 -- adjust the default tooltip
 function CDKP:ItemToolTip(wndControl, item, bStuff, nCount)
-	local this = Apollo.GetAddon("CDKP")
+	local this = Apollo.GetAddon("cdkp")
+
+	if not this then
+		this = Apollo.GetAddon("CDKP")
+	end
 	
 	wndControl:SetTooltipDoc(nil)
 	local wndTooltip, wndTooltipComp = origItemToolTipForm(self, wndControl, item, bStuff, nCount)
@@ -203,7 +207,7 @@ function CDKP:GetCDKPString(item)
 		end
 		
 		local t = ""
-		if tDefaultSettings["bShowItemId"] then t = t .. "Item ID: " .. item:GetItemId() .. "\n" end
+		if tDefaultSettings["bShowItemId"] then t = t .. "Item ID: " .. item:GetItemId() .. " | Power: " .. ipower .. "\n" end
 		if tDefaultSettings["bShowHealer"] then t = t .. "Healer: " .. CDKP:GetCDKPValue(ipower, tSlots, modifier, "healer") .. "\n" end
 		if tDefaultSettings["bShowTank"] then t = t .. "Tank: " .. CDKP:GetCDKPValue(ipower, tSlots, modifier, "tank") .. "\n" end
 		if tDefaultSettings["bShowWarrior"] then t = t .. "Warrior: " .. CDKP:GetCDKPValue(ipower, tSlots, modifier, "warrior") .. "\n" end
